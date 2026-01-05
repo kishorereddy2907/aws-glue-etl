@@ -158,3 +158,57 @@ Resources:
       Code:
         S3Bucket: !Ref RawBucket
         S3Key: lambdas/raw_validation.zip
+  ReconciliationLambdaRole:
+  Type: AWS::IAM::Role
+  Properties:
+    RoleName: aws-glue-etl-reconciliation-role
+    AssumeRolePolicyDocument:
+      Version: "2012-10-17"
+      Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+    Policies:
+      - PolicyName: ReconciliationBasicPolicy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - athena:StartQueryExecution
+                - athena:GetQueryExecution
+                - athena:GetQueryResults
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - glue:GetTable
+                - glue:GetDatabase
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - arn:aws:s3:::aws-glue-etl-curated-446072489762
+                - arn:aws:s3:::aws-glue-etl-curated-446072489762/*
+ReconciliationLambda:
+  Type: AWS::Lambda::Function
+  Properties:
+    FunctionName: reconciliation-lambda
+    Runtime: python3.10
+    Handler: handler.lambda_handler
+    Role: !GetAtt ReconciliationLambdaRole.Arn
+    Timeout: 300
+    MemorySize: 256
+    Code:
+      S3Bucket: aws-glue-etl-raw-446072489762
+      S3Key: lambdas/reconciliation.zip
+
+      
