@@ -120,3 +120,41 @@ Resources:
       RecrawlPolicy:
         RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY
       TablePrefix: curated_
+  RawValidationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: aws-glue-etl-raw-validation-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: RawValidationPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${RawBucket}/*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+  RawValidationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: raw-validation-lambda
+      Runtime: python3.10
+      Handler: handler.lambda_handler
+      Role: !GetAtt RawValidationLambdaRole.Arn
+      Timeout: 60
+      MemorySize: 256
+      Code:
+        S3Bucket: !Ref RawBucket
+        S3Key: lambdas/raw_validation.zip
