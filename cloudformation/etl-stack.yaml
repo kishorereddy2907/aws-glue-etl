@@ -67,3 +67,18 @@ Resources:
                   - glue:CreateTable
                   - glue:UpdateTable
                 Resource: "*"
+  RawCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: raw-s3-crawler
+      Role: !GetAtt GlueExecutionRole.Arn
+      DatabaseName: raw_db
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${RawBucket}"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DEPRECATE_IN_DATABASE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY
+      TablePrefix: raw_
