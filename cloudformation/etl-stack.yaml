@@ -82,3 +82,26 @@ Resources:
       RecrawlPolicy:
         RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY
       TablePrefix: raw_
+  RawToCuratedGlueJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: raw-to-curated-job
+      Role: !GetAtt GlueExecutionRole.Arn
+      GlueVersion: "4.0"
+      NumberOfWorkers: 2
+      WorkerType: G.1X
+      ExecutionProperty:
+        MaxConcurrentRuns: 1
+      Command:
+        Name: glueetl
+        PythonVersion: "3"
+        ScriptLocation: !Sub "s3://${RawBucket}/scripts/raw_to_curated.py"
+      DefaultArguments:
+        "--job-language": "python"
+        "--enable-metrics": "true"
+        "--enable-continuous-cloudwatch-log": "true"
+        "--SOURCE_DB": "raw_db"
+        "--SOURCE_TABLE": "raw_aws_glue_etl_raw_446072489762"
+        "--TARGET_S3_PATH": !Sub "s3://${CuratedBucket}/games/"
+      MaxRetries: 1
+      Timeout: 10
