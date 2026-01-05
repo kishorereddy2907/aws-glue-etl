@@ -77,8 +77,8 @@ Resources:
         S3Targets:
           - Path: !Sub "s3://${RawBucket}"
       SchemaChangePolicy:
-        UpdateBehavior: UPDATE_IN_DATABASE
-        DeleteBehavior: DEPRECATE_IN_DATABASE
+        UpdateBehavior: LOG
+        DeleteBehavior: LOG
       RecrawlPolicy:
         RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY
       TablePrefix: raw_
