@@ -105,3 +105,18 @@ Resources:
         "--TARGET_S3_PATH": !Sub "s3://${CuratedBucket}/games/"
       MaxRetries: 1
       Timeout: 10
+  CuratedCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: curated-s3-crawler
+      Role: !GetAtt GlueExecutionRole.Arn
+      DatabaseName: curated_db
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${CuratedBucket}/games/"
+      SchemaChangePolicy:
+        UpdateBehavior: LOG
+        DeleteBehavior: LOG
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY
+      TablePrefix: curated_
