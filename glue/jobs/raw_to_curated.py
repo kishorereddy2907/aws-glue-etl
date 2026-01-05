@@ -3,7 +3,7 @@ from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
-from pyspark.sql.functions import col, lower, trim
+from pyspark.sql.functions import col, trim
 from pyspark.sql.types import IntegerType
 
 # ------------------------
@@ -22,8 +22,7 @@ args = getResolvedOptions(
 # ------------------------
 # Spark / Glue setup
 # ------------------------
-sc = SparkContext()
-glue_context = GlueContext(sc)
+glue_context = GlueContext(SparkContext.getOrCreate())
 spark = glue_context.spark_session
 job = Job(glue_context)
 job.init(args["JOB_NAME"], args)
@@ -37,7 +36,7 @@ df = glue_context.create_dynamic_frame.from_catalog(
 ).toDF()
 
 # ------------------------
-# REQUIRED COLUMNS CHECK
+# Required columns check
 # ------------------------
 required_columns = [
     "id",
@@ -60,7 +59,7 @@ if missing:
     raise Exception(f"Missing required columns: {missing}")
 
 # ------------------------
-# Basic cleansing
+# Cleansing
 # ------------------------
 df = (
     df
@@ -76,7 +75,7 @@ df = (
 df = df.dropDuplicates(["id"])
 
 # ------------------------
-# Final column order (IMPORTANT)
+# Column order (CRITICAL)
 # ------------------------
 df = df.select(
     "id",
@@ -95,11 +94,11 @@ df = df.select(
 )
 
 # ------------------------
-# Write Parquet (NO PARTITIONS)
+# Write Parquet (NO partitions)
 # ------------------------
 (
     df.write
-    .mode("overwrite")
+    .mode("append")
     .parquet(args["curated_s3_path"])
 )
 
